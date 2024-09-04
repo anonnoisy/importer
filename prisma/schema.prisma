@@ -1,0 +1,56 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model brands {
+  id         Int          @id @default(autoincrement()) @db.UnsignedInt
+  name       String       @db.VarChar(100)
+  created_at DateTime?    @default(now()) @db.Timestamp(0)
+  updated_at DateTime?    @default(now()) @db.Timestamp(0)
+  spareparts spareparts[]
+}
+
+model categories {
+  id         Int          @id @default(autoincrement()) @db.UnsignedInt
+  name       String       @db.VarChar(100)
+  created_at DateTime?    @default(now()) @db.Timestamp(0)
+  updated_at DateTime?    @default(now()) @db.Timestamp(0)
+  spareparts spareparts[]
+}
+
+model sparepart_prices {
+  id          Int        @id @default(autoincrement()) @db.UnsignedInt
+  part_number String     @db.VarChar(100)
+  label       String     @db.VarChar(100)
+  value       Decimal    @db.Decimal(20, 2)
+  created_at  DateTime?  @default(now()) @db.Timestamp(0)
+  updated_at  DateTime?  @default(now()) @db.Timestamp(0)
+  spareparts  spareparts @relation(fields: [part_number], references: [part_number], onDelete: Cascade, map: "fk_sparepart")
+
+  @@index([part_number], map: "fk_sparepart")
+}
+
+model spareparts {
+  id                Int                @id @default(autoincrement()) @db.UnsignedInt
+  part_name         String             @db.VarChar(100)
+  part_number       String             @unique(map: "unique_part_number") @db.VarChar(100)
+  category_id       Int                @db.UnsignedInt
+  brand_id          Int                @db.UnsignedInt
+  part_description  String?            @db.VarChar(255)
+  device_compatible String?            @db.VarChar(255)
+  version           String?            @db.VarChar(50)
+  initial_stock     Int
+  created_at        DateTime?          @default(now()) @db.Timestamp(0)
+  updated_at        DateTime?          @default(now()) @db.Timestamp(0)
+  sparepart_prices  sparepart_prices[]
+  brands            brands             @relation(fields: [brand_id], references: [id], onDelete: Cascade, map: "fk_brand")
+  categories        categories         @relation(fields: [category_id], references: [id], onDelete: Cascade, map: "fk_category")
+
+  @@index([brand_id], map: "fk_brand")
+  @@index([category_id], map: "fk_category")
+}
